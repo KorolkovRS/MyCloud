@@ -1,66 +1,83 @@
 package server;
 
+import client.GUI.FileInfo;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import utils.CommandCode;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import org.apache.commons.io.FileUtils;
+import utils.Commands;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * Обработчик входящих строковых сообщений.
- */
-
-public class StorageServerHandler extends SimpleChannelInboundHandler<String> {
-    private ServerFunctions functions = new ServerFunctions();
+public class StorageServerHandler extends ChannelInboundHandlerAdapter {
+    private final String homePath = "src\\main\\resources\\serverData\\User1";
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, String s) throws Exception {
-        System.out.println(s);
-        if (s.startsWith(CommandCode.MSG.getTitle())) {
-            messageHandler(ctx, s.substring(CommandCode.MSG.getTitle().length() + 1));
-        } else if (s.equals(CommandCode.LIST.getTitle())) {
-            getList(ctx);
-        } else if(s.startsWith(CommandCode.TOUCH.getTitle())) {
-            touch(ctx, s.substring(CommandCode.TOUCH.getTitle().length() + 1));
-        } else if(s.startsWith(CommandCode.MKDIR.getTitle())) {
-            mkdir(ctx, s.substring(CommandCode.MKDIR.getTitle().length() + 1));
-        } else if(s.startsWith(CommandCode.REMOVE.getTitle())) {
-            remove(ctx, s.substring(CommandCode.REMOVE.getTitle().length() + 1));
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
+        if (msg instanceof String) {
+            String[] strings = ((String) msg).split("\n");
+            String s = strings[0];
+            System.out.println(msg);
+            if (s.equals(Commands.HOME_PATH_REQ.getCode())) {
+                ctx.writeAndFlush(homePath);
+            } else if (s.equals(Commands.FILE_STRUCT_REQ.getCode())) {
+                Path path = (Paths.get(homePath));
+                List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
+                System.out.println(list);
+                ctx.writeAndFlush(list);
+            } else if (s.equals(Commands.UP_REQ.getCode())) {
+                if (!strings[1].isEmpty()) {
+                    String currentPath = homePath + "\\" + strings[1];
+                    System.out.println(currentPath);
+                    Path path = Paths.get(pathUp(currentPath));
+                    List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
+                    ctx.writeAndFlush(list);
+                }
+            } else if (s.equals(Commands.DEPTH_REQ.getCode())) {
+                String currentPath = homePath + "\\" + strings[1];
+                System.out.println(currentPath);
+                Path path = Paths.get(currentPath);
+                if (Files.isDirectory(path)) {
+                    List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
+                    ctx.writeAndFlush(list);
+                } else {
+                    ctx.writeAndFlush("not a dir");
+                }
+            } else if (s.equals(Commands.DEL_REQ.getCode())) {
+                ctx.writeAndFlush(deletePath(strings[1]));
+            }
         }
     }
 
-    private void messageHandler(ChannelHandlerContext ctx, String msg) {
-        ctx.writeAndFlush("echo " + msg);
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
     }
 
-    private void getList(ChannelHandlerContext ctx) {
-        ctx.writeAndFlush(functions.getList());
+    public String pathUp(String path) throws IOException {
+        Path upperPath = Paths.get(path).getParent();
+        if (upperPath != null) {
+            return upperPath.toString();
+        } else {
+            throw new IOException();
+        }
     }
 
-    private void touch(ChannelHandlerContext ctx, String fileName) {
+    public String deletePath(String path) {
+        String deleteFile = homePath + "\\" + path;
+        System.out.println(deleteFile);
         try {
-            functions.touch(fileName);
-            ctx.writeAndFlush("Ok");
+            FileUtils.forceDelete(new File(deleteFile));
+            return "ok";
         } catch (IOException e) {
-            ctx.writeAndFlush("Error! File don't create");
+            e.printStackTrace();
         }
-    }
-
-    private void mkdir(ChannelHandlerContext ctx, String fileName) {
-        try {
-            functions.mkdir(fileName);
-            ctx.writeAndFlush("Ok");
-        } catch (IOException e) {
-            ctx.writeAndFlush("Error! Directory don't create");
-        }
-    }
-
-    private void remove(ChannelHandlerContext ctx, String name) {
-        try {
-            functions.remove(name);
-            ctx.writeAndFlush("Ok");
-        } catch (IOException e) {
-            ctx.writeAndFlush("Delete error");
-        }
+        return "error";
     }
 }
