@@ -4,20 +4,30 @@ import client.GUI.FileInfo;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import utils.Commands;
+import utils.FileCard;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 public class Client {
+    private static Client instance;
     private Socket socket;
     private ObjectEncoderOutputStream out;
     private ObjectDecoderInputStream in;
     private byte[] buff;
 
-    public Client() {
-        buff = new byte[256];
+    private Client() {
+        buff = new byte[8192];
+    }
+
+    public static synchronized Client getInstance() {
+        if (instance == null) {
+            instance = new Client();
+        }
+        return instance;
     }
 
     public void connect() throws IOException {
@@ -27,7 +37,7 @@ public class Client {
         System.out.println("Connect");
     }
 
-    private void disconnect() throws IOException {
+    public void disconnect() throws IOException {
         in.close();
         out.close();
     }
@@ -90,12 +100,14 @@ public class Client {
     }
 
     public void uploadFile(Path path) {
-        System.out.println(path.toString());
-
+        File file = new File(path.toString());
+        long length = file.length();
         try {
-            FileOutputStream fOut = new FileOutputStream(path.toFile());
-            out.writeObject(Commands.UPLOAD_REQ.getCode());
-
+            FileInputStream fIn = new FileInputStream(file);
+            fIn.read(buff);
+            fIn.close();
+            FileCard fileCard = new FileCard(path.getFileName().toString(), length, buff);
+            out.writeObject(fileCard);
         } catch (IOException e) {
             e.printStackTrace();
         }

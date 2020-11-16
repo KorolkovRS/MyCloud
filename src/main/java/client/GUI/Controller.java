@@ -1,5 +1,6 @@
 package client.GUI;
 
+import client.Client;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -13,7 +14,16 @@ public class Controller {
     @FXML
     VBox leftPanel;
 
+    @FXML
+    VBox rightPanel;
+
     public void btnExitAction(ActionEvent actionEvent) {
+        CloudPanelController cloudCtrl = (CloudPanelController) leftPanel.getProperties().get("ctrl");
+        try {
+            cloudCtrl.getClient().disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Platform.exit();
     }
 
