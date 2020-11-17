@@ -4,17 +4,13 @@ import java.io.Serializable;
 
 public class FileCard implements Serializable {
     private String fileName;
-    private long fileLength;
     private byte[] data;
+    private int length;
 
-    public FileCard(String fileName, long fileLength, byte[] data) {
-        this.fileLength = fileLength;
+    public FileCard(String fileName, byte[] data, int length) {
         this.fileName = fileName;
         this.data = data;
-    }
-
-    public long getFileLength() {
-        return fileLength;
+        this.length = length;
     }
 
     public String getFileName() {
@@ -23,5 +19,9 @@ public class FileCard implements Serializable {
 
     public byte[] getData() {
         return data;
+    }
+
+    public int getLength() {
+        return length;
     }
 }

@@ -106,7 +106,8 @@ public class ClientPanelController extends BaseController {
         FileInfo fileInfo = filesTable.getSelectionModel().getSelectedItem();
         Path uploadFile = Paths.get(pathField.getText()).resolve(fileInfo.getFilename());
         if (!Files.isDirectory(uploadFile)) {
-            client.uploadFile(uploadFile.toAbsolutePath());
+            String msg = client.uploadFile(uploadFile.toAbsolutePath());
+            System.out.println(msg);
         } else {
             Alert alert = new Alert(Alert.AlertType.WARNING, "Невозможно загрузить на диск директорию:( Эта возможность появится в ближайшее время", ButtonType.OK);
             alert.showAndWait();

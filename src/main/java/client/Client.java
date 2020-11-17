@@ -8,11 +8,11 @@ import utils.FileCard;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 public class Client {
+    private static final int BUFF_SIZE = 8;
     private static Client instance;
     private Socket socket;
     private ObjectEncoderOutputStream out;
@@ -20,7 +20,7 @@ public class Client {
     private byte[] buff;
 
     private Client() {
-        buff = new byte[8192];
+        buff = new byte[BUFF_SIZE];
     }
 
     public static synchronized Client getInstance() {
@@ -99,17 +99,29 @@ public class Client {
         return null;
     }
 
-    public void uploadFile(Path path) {
+    public String uploadFile(Path path) {
         File file = new File(path.toString());
-        long length = file.length();
-        try {
-            FileInputStream fIn = new FileInputStream(file);
-            fIn.read(buff);
-            fIn.close();
-            FileCard fileCard = new FileCard(path.getFileName().toString(), length, buff);
+        FileCard fileCard;
+        int read;
+        String msg = "error";
+
+        try(FileInputStream fis = new FileInputStream(file)) {
+            while ((read = fis.read(buff)) != -1) {
+                fileCard = new FileCard(path.getFileName().toString(), buff, read);
+                out.writeObject(fileCard);
+                out.flush();
+            }
+            fileCard = new FileCard(path.getFileName().toString(), null, 0);
             out.writeObject(fileCard);
-        } catch (IOException e) {
+            out.flush();
+            Object obj = in.readObject();
+            if (obj instanceof String) {
+                msg = (String) obj;
+            }
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            return msg;
         }
     }
 }

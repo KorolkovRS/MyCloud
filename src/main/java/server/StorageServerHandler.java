@@ -8,15 +8,18 @@ import utils.Commands;
 import utils.FileCard;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class StorageServerHandler extends ChannelInboundHandlerAdapter {
     private final String homePath = "src\\main\\resources\\serverData\\User1";
+    private String currentFile = "";
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
@@ -49,15 +52,21 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
             } else if (s.equals(Commands.DEL_REQ.getCode())) {
                 ctx.writeAndFlush(deletePath(strings[1]));
             }
-        } else if (msg instanceof FileCard) {
-            FileCard file = (FileCard) msg;
-            System.out.println(file.getFileName());
-            System.out.println(file.getFileLength());
-            byte[] bytes = file.getData();
-            for (int i = 0; i < bytes.length; i++) {
-                System.out.println(bytes[i]);
-            }
 
+        } else if (msg instanceof FileCard) {
+            FileCard fileCard = (FileCard) msg;
+            File newFile = new File(homePath + "\\" + fileCard.getFileName());
+
+            if (!currentFile.equals(fileCard.getFileName())) {
+                try {
+                    Files.delete(newFile.toPath());
+                    System.out.println("del");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    ctx.writeAndFlush("Error");
+                }
+            }
+            fileWrite(fileCard, ctx);
         }
     }
 
@@ -67,7 +76,7 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
         ctx.close();
     }
 
-    public String pathUp(String path) throws IOException {
+    private String pathUp(String path) throws IOException {
         Path upperPath = Paths.get(path).getParent();
         if (upperPath != null) {
             return upperPath.toString();
@@ -76,7 +85,7 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    public String deletePath(String path) {
+    private String deletePath(String path) {
         String deleteFile = homePath + "\\" + path;
         System.out.println(deleteFile);
         try {
@@ -86,5 +95,32 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
             e.printStackTrace();
         }
         return "error";
+    }
+
+    private void fileWrite(FileCard fileCard, ChannelHandlerContext ctx) {
+        File newFile = new File(homePath + "\\" + fileCard.getFileName());
+
+        try (FileOutputStream fos = new FileOutputStream(newFile, true)) {
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            if (fileCard.getFileName() != null) {
+                currentFile = fileCard.getFileName();
+            } else {
+                throw new IOException();
+            }
+            byte[] bytes = fileCard.getData();
+            if (bytes == null) {
+                currentFile = "";
+                ctx.writeAndFlush("ok");
+            } else {
+                fos.write(bytes, 0, fileCard.getLength());
+                fos.flush();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            ctx.writeAndFlush("error");
+            currentFile = "";
+        }
     }
 }
