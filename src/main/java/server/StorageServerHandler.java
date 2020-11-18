@@ -8,6 +8,7 @@ import utils.Commands;
 import utils.FileCard;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class StorageServerHandler extends ChannelInboundHandlerAdapter {
     private final String homePath = "src\\main\\resources\\serverData\\User1";
     private String currentFile = "";
+    private byte[] buff = new byte[8];
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
@@ -51,6 +53,8 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
                 }
             } else if (s.equals(Commands.DEL_REQ.getCode())) {
                 ctx.writeAndFlush(deletePath(strings[1]));
+            } else if (s.equals(Commands.DOWNLOAD_REQ.getCode())) {
+                uploadFile(strings[1], ctx);
             }
 
         } else if (msg instanceof FileCard) {
@@ -60,13 +64,10 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
             if (!currentFile.equals(fileCard.getFileName())) {
                 try {
                     Files.delete(newFile.toPath());
-                    System.out.println("del");
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    ctx.writeAndFlush("Error");
                 }
             }
-            fileWrite(fileCard, ctx);
+            downloadFile(fileCard, ctx);
         }
     }
 
@@ -90,14 +91,14 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
         System.out.println(deleteFile);
         try {
             FileUtils.forceDelete(new File(deleteFile));
-            return "ok";
+            return Commands.OK.getCode();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return "error";
+        return Commands.ERROR.getCode();
     }
 
-    private void fileWrite(FileCard fileCard, ChannelHandlerContext ctx) {
+    private void downloadFile(FileCard fileCard, ChannelHandlerContext ctx) {
         File newFile = new File(homePath + "\\" + fileCard.getFileName());
 
         try (FileOutputStream fos = new FileOutputStream(newFile, true)) {
@@ -112,15 +113,32 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
             byte[] bytes = fileCard.getData();
             if (bytes == null) {
                 currentFile = "";
-                ctx.writeAndFlush("ok");
+                ctx.writeAndFlush(Commands.OK.getCode());
             } else {
                 fos.write(bytes, 0, fileCard.getLength());
                 fos.flush();
             }
         } catch (IOException e) {
             e.printStackTrace();
-            ctx.writeAndFlush("error");
+            ctx.writeAndFlush(Commands.ERROR.getCode());
             currentFile = "";
+        }
+    }
+
+    private void uploadFile(String fileName, ChannelHandlerContext ctx) {
+        File file = new File(homePath + "\\" + fileName);
+        FileCard fileCard;
+        int read;
+
+        try (FileInputStream fis = new FileInputStream(file)) {
+            while ((read = fis.read(buff)) != -1) {
+                fileCard = new FileCard(Paths.get(file.getName()).toString(), buff, read);
+                ctx.writeAndFlush(fileCard);
+            }
+            fileCard = new FileCard(Paths.get(file.getName()).toString(), null, 0);
+            ctx.writeAndFlush(fileCard);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

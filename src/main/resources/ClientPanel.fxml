@@ -20,6 +20,7 @@
     <HBox spacing="5">
         <Button maxWidth="Infinity" focusTraversable="false" text="Загрузить файл в облако" HBox.hgrow="ALWAYS" onAction="#btnLoadFile"/>
         <Button maxWidth="Infinity" focusTraversable="false" text="Удалить файл" HBox.hgrow="ALWAYS" onAction="#btnFileDelete"/>
+        <Button maxWidth="Infinity" focusTraversable="false" text="Обновить" HBox.hgrow="ALWAYS" onAction="#btnUpd"/>
         <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
         </padding>

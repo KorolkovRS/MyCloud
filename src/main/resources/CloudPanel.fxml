@@ -13,7 +13,7 @@
     <TableView fx:id="filesTable" VBox.vgrow="ALWAYS"/>
 
     <HBox spacing="5">
-        <Button maxWidth="Infinity" focusTraversable="false" text="Скачать файл" HBox.hgrow="ALWAYS"/>
+        <Button maxWidth="Infinity" focusTraversable="false" text="Скачать файл" HBox.hgrow="ALWAYS" onAction="#btnLoadFile"/>
         <Button maxWidth="Infinity" focusTraversable="false" text="Удалить файл" HBox.hgrow="ALWAYS" onAction="#btnFileDelete"/>
         <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>

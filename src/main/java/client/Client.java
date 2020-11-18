@@ -3,11 +3,13 @@ package client;
 import client.GUI.FileInfo;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
+import javafx.scene.web.HTMLEditorSkin;
 import utils.Commands;
 import utils.FileCard;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -18,6 +20,7 @@ public class Client {
     private ObjectEncoderOutputStream out;
     private ObjectDecoderInputStream in;
     private byte[] buff;
+    private String currentFile = "";
 
     private Client() {
         buff = new byte[BUFF_SIZE];
@@ -105,7 +108,7 @@ public class Client {
         int read;
         String msg = "error";
 
-        try(FileInputStream fis = new FileInputStream(file)) {
+        try (FileInputStream fis = new FileInputStream(file)) {
             while ((read = fis.read(buff)) != -1) {
                 fileCard = new FileCard(path.getFileName().toString(), buff, read);
                 out.writeObject(fileCard);
@@ -117,6 +120,45 @@ public class Client {
             Object obj = in.readObject();
             if (obj instanceof String) {
                 msg = (String) obj;
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            return msg;
+        }
+    }
+
+    public String downloadFile(Path path, String downloadDir) {
+        String msg = Commands.ERROR.getCode();
+        File newFile = new File(downloadDir +"\\" + path.getFileName());
+        if (newFile.exists()) {
+            newFile.delete();
+        }
+        Object obj;
+        try(FileOutputStream fos = new FileOutputStream(newFile, true)) {
+            out.writeObject(Commands.DOWNLOAD_REQ.getCode() + "\n" + path);
+            while (true) {
+                obj = in.readObject();
+                if (obj instanceof FileCard) {
+                    FileCard fileCard = (FileCard) obj;
+                    if (!newFile.exists()) {
+                        newFile.createNewFile();
+                    }
+                    if (fileCard.getFileName() != null) {
+                        currentFile = fileCard.getFileName();
+                    } else {
+                        throw new IOException();
+                    }
+                    byte[] bytes = fileCard.getData();
+                    if (bytes == null) {
+                        currentFile = "";
+                        msg = Commands.OK.getCode();
+                        break;
+                    } else {
+                        fos.write(bytes, 0, fileCard.getLength());
+                        fos.flush();
+                    }
+                }
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

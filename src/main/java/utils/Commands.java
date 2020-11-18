@@ -6,8 +6,9 @@ public enum Commands {
     UP_REQ("3"),
     DEPTH_REQ("4"),
     DEL_REQ("5"),
-    UPLOAD_REQ("6"),
-    DOWNLOAD_REQ("7");
+    OK("6"),
+    ERROR("7"),
+    DOWNLOAD_REQ("8");
 
     private String  code;
 

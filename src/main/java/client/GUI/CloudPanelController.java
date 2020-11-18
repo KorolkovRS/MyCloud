@@ -1,12 +1,11 @@
 package client.GUI;
 
-import client.Client;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import org.apache.commons.io.FileUtils;
+import utils.Commands;
+import utils.ControllerContext;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
@@ -18,10 +17,13 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class CloudPanelController extends BaseController {
+    private ClientPanelController clientCtr;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         homePath = null;
         super.initialize(url, resourceBundle);
+        ControllerContext.setCloudCtr(this);
     }
 
     @Override
@@ -83,12 +85,10 @@ public class CloudPanelController extends BaseController {
 
                 if (option.get() == null || option.get() == ButtonType.CANCEL) {
                     return;
-                } else if (option.get() == ButtonType.OK) {
-                    msg = client.fileDeleteRequest(deleteFile);
                 }
             }
             msg = client.fileDeleteRequest(deleteFile);
-            if (msg.equals("ok")) {
+            if (msg.equals(Commands.OK.getCode())) {
                 update();
             } else {
                 Alert alert = new Alert(Alert.AlertType.WARNING, "Ошибка при удалении файла", ButtonType.OK);
@@ -106,6 +106,22 @@ public class CloudPanelController extends BaseController {
             filesTable.sort();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.WARNING, "По какой-то причине не удалось обновить список файлов", ButtonType.OK);
+            alert.showAndWait();
+        }
+    }
+
+    public void btnLoadFile(ActionEvent actionEvent) {
+        if (clientCtr == null) {
+            clientCtr = ControllerContext.getClientCtrInstance();
+        }
+        FileInfo fileInfo = filesTable.getSelectionModel().getSelectedItem();
+        Path uploadFile = Paths.get(pathField.getText()).resolve(fileInfo.getFilename());
+        if (!Files.isDirectory(uploadFile)) {
+            if (client.downloadFile(uploadFile, clientCtr.getCurrentPath()).equals(Commands.OK.getCode())); {
+                clientCtr.btnUpd(null);
+            }
+        } else {
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Невозможно загрузить на диск директорию:( Эта возможность появится в ближайшее время", ButtonType.OK);
             alert.showAndWait();
         }
     }

@@ -21,10 +21,11 @@ public class Controller {
         CloudPanelController cloudCtrl = (CloudPanelController) leftPanel.getProperties().get("ctrl");
         try {
             cloudCtrl.getClient().disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Нет открытых соединений");
+        } finally {
+            Platform.exit();
         }
-        Platform.exit();
     }
 
     public void btnLogIn(ActionEvent actionEvent) {

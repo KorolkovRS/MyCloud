@@ -3,7 +3,10 @@ package client.GUI;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import org.apache.commons.io.FileUtils;
+import utils.Commands;
+import utils.ControllerContext;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,9 +21,12 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class ClientPanelController extends BaseController {
+    private CloudPanelController cloudCtr;
 
     @FXML
     ComboBox<String> disksBox;
+
+    CloudPanelController cloudCtrl;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -31,9 +37,11 @@ public class ClientPanelController extends BaseController {
         for (Path p : FileSystems.getDefault().getRootDirectories()) {
             disksBox.getItems().add(p.toString());
         }
-        disksBox.getSelectionModel().select(0);
 
+        List<String> disks = disksBox.getItems();
+        disksBox.getSelectionModel().select(disks.indexOf(Paths.get(homePath).toAbsolutePath().getRoot().toString()));
         updateList(Paths.get(homePath), null);
+        ControllerContext.setClientCtr(this);
     }
 
     @Override
@@ -103,14 +111,27 @@ public class ClientPanelController extends BaseController {
     }
 
     public void btnLoadFile(ActionEvent actionEvent) {
+        if (cloudCtrl == null) {
+            cloudCtrl = ControllerContext.getCloudCtrInstance();
+        }
         FileInfo fileInfo = filesTable.getSelectionModel().getSelectedItem();
         Path uploadFile = Paths.get(pathField.getText()).resolve(fileInfo.getFilename());
         if (!Files.isDirectory(uploadFile)) {
             String msg = client.uploadFile(uploadFile.toAbsolutePath());
-            System.out.println(msg);
+            if (msg.equals(Commands.OK.getCode())) {
+                cloudCtrl.update();
+            }
         } else {
             Alert alert = new Alert(Alert.AlertType.WARNING, "Невозможно загрузить на диск директорию:( Эта возможность появится в ближайшее время", ButtonType.OK);
             alert.showAndWait();
         }
+    }
+
+    public String getCurrentPath() {
+        return pathField.getText();
+    }
+
+    public void btnUpd(ActionEvent actionEvent) {
+        updateList(Paths.get(pathField.getText()), null);
     }
 }
