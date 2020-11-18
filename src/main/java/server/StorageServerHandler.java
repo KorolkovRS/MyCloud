@@ -31,7 +31,12 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
             if (s.equals(Commands.HOME_PATH_REQ.getCode())) {
                 ctx.writeAndFlush(homePath);
             } else if (s.equals(Commands.FILE_STRUCT_REQ.getCode())) {
-                Path path = (Paths.get(homePath));
+                Path path;
+                try {
+                    path = (Paths.get(homePath + "\\" + strings[1]));
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    path = (Paths.get(homePath));
+                }
                 List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
                 ctx.writeAndFlush(list);
             } else if (s.equals(Commands.UP_REQ.getCode())) {

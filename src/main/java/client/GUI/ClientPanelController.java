@@ -26,8 +26,6 @@ public class ClientPanelController extends BaseController {
     @FXML
     ComboBox<String> disksBox;
 
-    CloudPanelController cloudCtrl;
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         login();
@@ -111,15 +109,15 @@ public class ClientPanelController extends BaseController {
     }
 
     public void btnLoadFile(ActionEvent actionEvent) {
-        if (cloudCtrl == null) {
-            cloudCtrl = ControllerContext.getCloudCtrInstance();
+        if (cloudCtr == null) {
+            cloudCtr = ControllerContext.getCloudCtrInstance();
         }
         FileInfo fileInfo = filesTable.getSelectionModel().getSelectedItem();
-        Path uploadFile = Paths.get(pathField.getText()).resolve(fileInfo.getFilename());
-        if (!Files.isDirectory(uploadFile)) {
-            String msg = client.uploadFile(uploadFile.toAbsolutePath());
+        Path loadFile = Paths.get(pathField.getText()).resolve(fileInfo.getFilename());
+        if (!Files.isDirectory(loadFile)) {
+            String msg = client.uploadFile(loadFile, cloudCtr.getCurrentPath());
             if (msg.equals(Commands.OK.getCode())) {
-                cloudCtrl.update();
+                cloudCtr.update();
             }
         } else {
             Alert alert = new Alert(Alert.AlertType.WARNING, "Невозможно загрузить на диск директорию:( Эта возможность появится в ближайшее время", ButtonType.OK);

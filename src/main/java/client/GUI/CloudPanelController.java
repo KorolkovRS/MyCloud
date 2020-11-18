@@ -102,7 +102,7 @@ public class CloudPanelController extends BaseController {
     public void update() {
         try {
             filesTable.getItems().clear();
-            filesTable.getItems().addAll(client.fileStructRequest());
+            filesTable.getItems().addAll(client.fileStructRequest(pathField.getText()));
             filesTable.sort();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.WARNING, "По какой-то причине не удалось обновить список файлов", ButtonType.OK);
@@ -124,5 +124,9 @@ public class CloudPanelController extends BaseController {
             Alert alert = new Alert(Alert.AlertType.WARNING, "Невозможно загрузить на диск директорию:( Эта возможность появится в ближайшее время", ButtonType.OK);
             alert.showAndWait();
         }
+    }
+
+    public String getCurrentPath() {
+        return pathField.getText();
     }
 }

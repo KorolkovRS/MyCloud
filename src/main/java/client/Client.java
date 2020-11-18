@@ -34,7 +34,7 @@ public class Client {
     }
 
     public void connect() throws IOException {
-        socket = new Socket("localhost", 8889);
+        socket = new Socket("localhost", 8888);
         out = new ObjectEncoderOutputStream(socket.getOutputStream());
         in = new ObjectDecoderInputStream(socket.getInputStream());
         System.out.println("Connect");
@@ -45,8 +45,8 @@ public class Client {
         out.close();
     }
 
-    public List<FileInfo> fileStructRequest() throws IOException {
-        out.writeObject(Commands.FILE_STRUCT_REQ.getCode());
+    public List<FileInfo> fileStructRequest(String path) throws IOException {
+        out.writeObject(Commands.FILE_STRUCT_REQ.getCode() + "\n" + path);
         try {
             Object incoming = in.readObject();
             if (incoming instanceof List) {
@@ -102,19 +102,20 @@ public class Client {
         return null;
     }
 
-    public String uploadFile(Path path) {
+    public String uploadFile(Path path, String loadDir) {
         File file = new File(path.toString());
         FileCard fileCard;
         int read;
         String msg = "error";
+        String fileDir = loadDir + "\\" + path.getFileName().toString();
 
         try (FileInputStream fis = new FileInputStream(file)) {
             while ((read = fis.read(buff)) != -1) {
-                fileCard = new FileCard(path.getFileName().toString(), buff, read);
+                fileCard = new FileCard(fileDir, buff, read);
                 out.writeObject(fileCard);
                 out.flush();
             }
-            fileCard = new FileCard(path.getFileName().toString(), null, 0);
+            fileCard = new FileCard(fileDir, null, 0);
             out.writeObject(fileCard);
             out.flush();
             Object obj = in.readObject();

@@ -47,7 +47,7 @@ public class NettyServer {
 
     public static void main(String[] args) {
         try {
-            new NettyServer(8889).start();
+            new NettyServer(8888).start();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
