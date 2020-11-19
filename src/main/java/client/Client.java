@@ -43,9 +43,11 @@ public class Client {
     public void disconnect() throws IOException {
         in.close();
         out.close();
+        System.out.println("Disconnect");
     }
 
     public List<FileInfo> fileStructRequest(String path) throws IOException {
+        connect();
         out.writeObject(Commands.FILE_STRUCT_REQ.getCode() + "\n" + path);
         try {
             Object incoming = in.readObject();
@@ -55,11 +57,14 @@ public class Client {
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            disconnect();
         }
         return null;
     }
 
     public List<FileInfo> pathUpRequest(String path) throws IOException {
+        connect();
         try {
             out.writeObject(Commands.UP_REQ.getCode() + "\n" + path);
             Object incoming = in.readObject();
@@ -70,11 +75,14 @@ public class Client {
 
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            disconnect();
         }
         return null;
     }
 
     public List<FileInfo> depthFileStructRequest(Path path) throws IOException {
+        connect();
         out.writeObject(Commands.DEPTH_REQ.getCode() + "\n" + path);
         try {
             Object incoming = in.readObject();
@@ -84,11 +92,14 @@ public class Client {
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            disconnect();
         }
         return null;
     }
 
     public String fileDeleteRequest(Path path) throws IOException {
+        connect();
         out.writeObject(Commands.DEL_REQ.getCode() + "\n" + path);
         Object msg = null;
         try {
@@ -98,11 +109,14 @@ public class Client {
             }
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            disconnect();
         }
         return null;
     }
 
-    public String uploadFile(Path path, String loadDir) {
+    public String uploadFile(Path path, String loadDir) throws IOException {
+        connect();
         File file = new File(path.toString());
         FileCard fileCard;
         int read;
@@ -125,11 +139,13 @@ public class Client {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
+            disconnect();
             return msg;
         }
     }
 
-    public String downloadFile(Path path, String downloadDir) {
+    public String downloadFile(Path path, String downloadDir) throws IOException {
+        connect();
         String msg = Commands.ERROR.getCode();
         File newFile = new File(downloadDir +"\\" + path.getFileName());
         if (newFile.exists()) {
@@ -164,6 +180,7 @@ public class Client {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
+            disconnect();
             return msg;
         }
     }

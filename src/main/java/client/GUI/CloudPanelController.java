@@ -116,9 +116,15 @@ public class CloudPanelController extends BaseController {
         }
         FileInfo fileInfo = filesTable.getSelectionModel().getSelectedItem();
         Path uploadFile = Paths.get(pathField.getText()).resolve(fileInfo.getFilename());
+
         if (!Files.isDirectory(uploadFile)) {
-            if (client.downloadFile(uploadFile, clientCtr.getCurrentPath()).equals(Commands.OK.getCode())); {
-                clientCtr.btnUpd(null);
+            try {
+                if (client.downloadFile(uploadFile, clientCtr.getCurrentPath()).equals(Commands.OK.getCode())) ;
+                {
+                    clientCtr.btnUpd(null);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         } else {
             Alert alert = new Alert(Alert.AlertType.WARNING, "Невозможно загрузить на диск директорию:( Эта возможность появится в ближайшее время", ButtonType.OK);

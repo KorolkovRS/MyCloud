@@ -16,12 +16,21 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 
 public class StorageServerHandler extends ChannelInboundHandlerAdapter {
     private final String homePath = "src\\main\\resources\\serverData\\User1";
     private String currentFile = "";
     private byte[] buff = new byte[8];
+
+    public static final ConcurrentLinkedDeque<ChannelHandlerContext> channels =
+            new ConcurrentLinkedDeque<>();
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.close();
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
@@ -42,7 +51,6 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
             } else if (s.equals(Commands.UP_REQ.getCode())) {
                 if (!strings[1].isEmpty()) {
                     String currentPath = homePath + "\\" + strings[1];
-                    System.out.println(currentPath);
                     Path path = Paths.get(pathUp(currentPath));
                     List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
                     ctx.writeAndFlush(list);
@@ -93,7 +101,6 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
 
     private String deletePath(String path) {
         String deleteFile = homePath + "\\" + path;
-        System.out.println(deleteFile);
         try {
             FileUtils.forceDelete(new File(deleteFile));
             return Commands.OK.getCode();
@@ -105,7 +112,6 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
 
     private void downloadFile(FileCard fileCard, ChannelHandlerContext ctx) {
         File newFile = new File(homePath + "\\" + fileCard.getFileName());
-
         try (FileOutputStream fos = new FileOutputStream(newFile, true)) {
             if (!newFile.exists()) {
                 newFile.createNewFile();
