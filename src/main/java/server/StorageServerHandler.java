@@ -4,7 +4,9 @@ import client.GUI.FileInfo;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.commons.io.FileUtils;
+import utils.AuthCard;
 import utils.Commands;
+import utils.DataPack;
 import utils.FileCard;
 
 import java.io.File;
@@ -15,72 +17,97 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 
 public class StorageServerHandler extends ChannelInboundHandlerAdapter {
-    private final String homePath = "src\\main\\resources\\serverData\\User1";
+    private String homePath;
     private String currentFile = "";
-    private byte[] buff = new byte[8];
-
-    public static final ConcurrentLinkedDeque<ChannelHandlerContext> channels =
-            new ConcurrentLinkedDeque<>();
+    private byte[] buff = new byte[8192];
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        ctx.close();
+        System.out.println("ACTIVE");
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("INACTIVE");
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
-        if (msg instanceof String) {
-            String[] strings = ((String) msg).split("\n");
-            String s = strings[0];
-            if (s.equals(Commands.HOME_PATH_REQ.getCode())) {
-                ctx.writeAndFlush(homePath);
-            } else if (s.equals(Commands.FILE_STRUCT_REQ.getCode())) {
-                Path path;
-                try {
-                    path = (Paths.get(homePath + "\\" + strings[1]));
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    path = (Paths.get(homePath));
-                }
-                List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
-                ctx.writeAndFlush(list);
-            } else if (s.equals(Commands.UP_REQ.getCode())) {
-                if (!strings[1].isEmpty()) {
-                    String currentPath = homePath + "\\" + strings[1];
-                    Path path = Paths.get(pathUp(currentPath));
+        String command;
+        String dir;
+        FileCard fileCard;
+
+        if (msg instanceof DataPack) {
+            DataPack dataPack = (DataPack) msg;
+            if (!login(dataPack.getLogin(), dataPack.getPass())) {
+                ctx.writeAndFlush(Commands.ERROR.getCode());
+                return;
+            }
+
+            if ((command = dataPack.getCommand()) != null && (dir = dataPack.getPath()) != null) {
+                if (command.equals(Commands.HOME_PATH_REQ.getCode())) {
+                    ctx.writeAndFlush(homePath);
+                } else if (command.equals(Commands.FILE_STRUCT_REQ.getCode())) {
+                    Path path;
+                    try {
+                        path = (Paths.get(homePath + "\\" + dir));
+                    } catch (ArrayIndexOutOfBoundsException e) {
+                        path = (Paths.get(homePath));
+                    }
                     List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
                     ctx.writeAndFlush(list);
+                } else if (command.equals(Commands.UP_REQ.getCode())) {
+                    if (!dir.isEmpty()) {
+                        String currentPath = homePath + "\\" + dir;
+                        Path path = Paths.get(pathUp(currentPath));
+                        List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
+                        ctx.writeAndFlush(list);
+                    }
+                } else if (command.equals(Commands.DEPTH_REQ.getCode())) {
+                    String currentPath = homePath + "\\" + dir;
+                    Path path = Paths.get(currentPath);
+                    if (Files.isDirectory(path)) {
+                        List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
+                        ctx.writeAndFlush(list);
+                    } else {
+                        ctx.writeAndFlush("not a dir");
+                    }
+                } else if (command.equals(Commands.DEL_REQ.getCode())) {
+                    ctx.writeAndFlush(deletePath(dir));
+                } else if (command.equals(Commands.DOWNLOAD_REQ.getCode())) {
+                    uploadFile(dir, ctx);
                 }
-            } else if (s.equals(Commands.DEPTH_REQ.getCode())) {
-                String currentPath = homePath + "\\" + strings[1];
-                Path path = Paths.get(currentPath);
-                if (Files.isDirectory(path)) {
-                    List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
-                    ctx.writeAndFlush(list);
+            } else if ((fileCard = dataPack.getFileCard()) != null) {
+                File newFile = new File(homePath + "\\" + fileCard.getFileName());
+                if (!currentFile.equals(fileCard.getFileName())) {
+                    try {
+                        Files.delete(newFile.toPath());
+                    } catch (IOException e) {
+                    }
+                }
+                downloadFile(fileCard, ctx);
+            }
+        } else if (msg instanceof AuthCard) {
+            AuthCard authCard;
+            if ((authCard = (AuthCard) msg).isCheckReq()) {
+                if(checkIn(authCard.getUsername(), authCard.getPass())) {
+                    ctx.writeAndFlush(Commands.OK.getCode());
                 } else {
-                    ctx.writeAndFlush("not a dir");
+                    ctx.writeAndFlush(Commands.ERROR.getCode());
                 }
-            } else if (s.equals(Commands.DEL_REQ.getCode())) {
-                ctx.writeAndFlush(deletePath(strings[1]));
-            } else if (s.equals(Commands.DOWNLOAD_REQ.getCode())) {
-                uploadFile(strings[1], ctx);
+            } else {
+               if(login(authCard.getUsername(), authCard.getPass())) {
+                   ctx.writeAndFlush(Commands.OK.getCode());
+               } else {
+                   ctx.writeAndFlush(Commands.ERROR.getCode());
+               }
             }
-
-        } else if (msg instanceof FileCard) {
-            FileCard fileCard = (FileCard) msg;
-            File newFile = new File(homePath + "\\" + fileCard.getFileName());
-
-            if (!currentFile.equals(fileCard.getFileName())) {
-                try {
-                    Files.delete(newFile.toPath());
-                } catch (IOException e) {
-                }
-            }
-            downloadFile(fileCard, ctx);
         }
     }
 
@@ -151,5 +178,30 @@ public class StorageServerHandler extends ChannelInboundHandlerAdapter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean login(String login, String pass) {
+        String dir;
+        if (login != null && pass != null) {
+            if((dir = AuthHandler.getHomePath(login, pass)) != null) {
+                System.out.println("SH login");
+                homePath = dir;
+                System.out.println("homepath " + homePath);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkIn(String login, String pass) {
+        try {
+            AuthHandler.setHomePath(login, pass);
+            return true;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

@@ -102,7 +102,11 @@ public class CloudPanelController extends BaseController {
     public void update() {
         try {
             filesTable.getItems().clear();
-            filesTable.getItems().addAll(client.fileStructRequest(pathField.getText()));
+            List<FileInfo> list = client.fileStructRequest(pathField.getText());
+            if (list == null) {
+                throw new IOException();
+            }
+            filesTable.getItems().addAll(list);
             filesTable.sort();
         } catch (IOException e) {
             Alert alert = new Alert(Alert.AlertType.WARNING, "По какой-то причине не удалось обновить список файлов", ButtonType.OK);

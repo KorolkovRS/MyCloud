@@ -47,13 +47,5 @@ public class Controller {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        try {
-            cloudCtrl.getClient().connect();
-            cloudCtrl.login();
-        } catch (IOException e) {
-            Alert alert = new Alert(Alert.AlertType.WARNING, "Не удалось подключится к серверу", ButtonType.OK);
-            alert.showAndWait();
-        }
     }
 }
