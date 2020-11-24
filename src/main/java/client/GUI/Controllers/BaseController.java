@@ -1,6 +1,7 @@
-package client.GUI;
+package client.GUI.Controllers;
 
 import client.Client;
+import client.GUI.FileInfo;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;

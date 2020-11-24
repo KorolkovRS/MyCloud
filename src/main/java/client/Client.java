@@ -2,9 +2,8 @@ package client;
 
 //import client.GUI.FileInfo;
 
-import client.GUI.CloudPanelController;
+import client.GUI.Controllers.CloudPanelController;
 import client.GUI.Controllers.AuthController;
-import client.GUI.FileInfo;
 import client.GUI.Main;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
@@ -16,8 +15,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Client {
     private static final int BUFF_SIZE = 8192;
@@ -244,6 +241,13 @@ public class Client {
         }
     }
 
+    public void fileDeleteRequest(String path) {
+        try {
+            out.writeObject(new DataPack(token, Commands.DEL_REQ, path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
 //    public List<FileInfo> pathUpRequest(String path) throws IOException {

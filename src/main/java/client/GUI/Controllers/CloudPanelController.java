@@ -1,5 +1,7 @@
-package client.GUI;
+package client.GUI.Controllers;
 
+import client.GUI.Controllers.BaseController;
+import client.GUI.FileInfo;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -11,8 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 public class CloudPanelController extends BaseController {
 
@@ -52,7 +54,18 @@ public class CloudPanelController extends BaseController {
 
     @Override
     public void btnFileDelete(ActionEvent actionEvent) {
-        System.out.println("delete file cloud");
+        FileInfo fileInfo = filesTable.getSelectionModel().getSelectedItem();
+        Path deleteFile = Paths.get(pathField.getText()).resolve(fileInfo.getFilename());
+        if (Files.isDirectory(deleteFile)) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Удаление каталога");
+            alert.setHeaderText("Вы действительно хотите удалить каталог?");
+            alert.setContentText("Нажмите OK для удаления и Cancel для отмены");
+            Optional<ButtonType> option = alert.showAndWait();
+            if (option.get() == null || option.get() == ButtonType.CANCEL) {
+                return;
+            }
+        }
+        client.fileDeleteRequest(deleteFile.toString());
     }
 
     @Override

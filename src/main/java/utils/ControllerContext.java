@@ -1,7 +1,7 @@
 package utils;
 
-import client.GUI.ClientPanelController;
-import client.GUI.CloudPanelController;
+import client.GUI.Controllers.ClientPanelController;
+import client.GUI.Controllers.CloudPanelController;
 
 public class ControllerContext {
     private static ClientPanelController clientCtrInstance;

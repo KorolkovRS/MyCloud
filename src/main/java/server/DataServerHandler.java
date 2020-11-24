@@ -44,6 +44,9 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
                     case FILE_STRUCT_REQ:
                         getFileStruct(dataPack.getStringData(), ctx);
                         break;
+                    case DEL_REQ:
+                        deleteFile(dataPack.getStringData(), ctx);
+                        break;
                     default:
                         throw new IOException();
                 }
@@ -94,6 +97,20 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
             ctx.writeAndFlush(new DataPack(token, Commands.FILE_STRUCT, list));
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void deleteFile(String path, ChannelHandlerContext ctx) {
+        try {
+        if (path == null || path.isBlank()) {
+            throw new IOException();
+        }
+            String deleteFile = homeFolder + "\\" + path;
+            FileUtils.forceDelete(new File(deleteFile));
+            ctx.writeAndFlush(new DataPack(token, Commands.OK));
+        } catch (IOException e) {
+            System.out.println("Ошибка при удалении файла");
+            ctx.writeAndFlush(new DataPack(token, Commands.ERROR, "Ошибка при удалении файла"));
         }
     }
 }

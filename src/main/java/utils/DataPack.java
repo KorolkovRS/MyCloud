@@ -1,11 +1,9 @@
 package utils;
 
 import client.GUI.FileInfo;
-import javafx.scene.web.HTMLEditorSkin;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Path;
 import java.util.List;
 
 public class DataPack implements Serializable {
@@ -33,9 +31,6 @@ public class DataPack implements Serializable {
         return command;
     }
 
-    public Object getData() {
-        return data;
-    }
 
     public FileCard getFileCard() throws IOException {
         if ((this.data instanceof FileCard) && Commands.UPLOAD_REQ.equals(this.command)) {
@@ -46,7 +41,9 @@ public class DataPack implements Serializable {
     }
 
     public String getStringData() throws IOException {
-        if ((this.data instanceof String) && Commands.FILE_STRUCT_REQ.equals(this.command)) {
+        if ((this.data instanceof String) &&
+                (Commands.FILE_STRUCT_REQ.equals(this.command)
+                    || Commands.DEL_REQ.equals(this.command))) {
             return (String) data;
         } else {
             throw new IOException();

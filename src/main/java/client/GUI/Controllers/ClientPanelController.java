@@ -1,14 +1,12 @@
-package client.GUI;
+package client.GUI.Controllers;
 
+import client.GUI.FileInfo;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
-import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;
-import utils.Commands;
 import utils.ControllerContext;
 
 import java.io.File;
