@@ -7,7 +7,10 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 
 import java.net.URL;
@@ -19,7 +22,7 @@ import java.util.ResourceBundle;
 
 public abstract class BaseController implements Initializable {
 
-    protected String homePath;
+    protected Path homePath;
     protected Client client;
 
     @FXML
@@ -79,17 +82,38 @@ public abstract class BaseController implements Initializable {
         });
     }
 
-    public Client getClient() {
-        return client;
-    }
+    public abstract void update(Path path);
 
-    protected abstract void login();
-
-    protected abstract void openFolder(Path path);
-
-    public abstract void updateList(Path path, List<FileInfo> list);
+    public abstract void openFolder(Path path);
 
     public abstract void btnPathUpAction(ActionEvent actionEvent);
 
     public abstract void btnFileDelete(ActionEvent actionEvent);
+
+    public abstract void btnLoadFile(ActionEvent actionEvent);
+
+
+
+    //    @Override
+//    public void btnPathUpAction(ActionEvent actionEvent) {
+//        Path upperPath = Paths.get(pathField.getText()).getParent();
+//        if (upperPath != null) {
+//            updateList(upperPath, null);
+//        } else updateList(Paths.get(pathField.getText()), null);
+//    }
+
+//
+//
+//
+//    public Client getClient() {
+//        return client;
+//    }
+//
+//    protected abstract void login();
+//
+//    public abstract void updateList(Path path, List<FileInfo> list);
+//
+//    public abstract void btnPathUpAction(ActionEvent actionEvent);
+//
+//    public abstract void btnFileDelete(ActionEvent actionEvent);
 }

@@ -1,39 +1,42 @@
 package utils;
 
+import javafx.scene.web.HTMLEditorSkin;
+
 import java.io.Serializable;
+import java.nio.file.Path;
 
 public class DataPack implements Serializable {
-    private String login;
-    private String pass;
-    private String command;
+    private Integer token;
+    private Commands command;
     private String path;
     private FileCard fileCard;
 
-    public DataPack(String login, String pass, String command, String path) {
-        this.login = login;
-        this.pass = pass;
+    public DataPack(Integer token, Commands command) {
+        this.token = token;
+        this.command = command;
+        path = null;
+        fileCard = null;
+    }
+
+    public DataPack(Integer token, Commands command, String path) {
+        this.token = token;
         this.command = command;
         this.path = path;
         fileCard = null;
     }
 
-    public DataPack(String login, String pass, FileCard fileCard) {
-        this.login = login;
-        this.pass = pass;
+    public DataPack(Integer token, Commands command, FileCard fileCard) {
+        this.token = token;
         this.fileCard = fileCard;
-        command = null;
+        this.command = command;
         path = null;
     }
 
-    public String getLogin() {
-        return login;
+    public Integer getToken() {
+        return token;
     }
 
-    public String getPass() {
-        return pass;
-    }
-
-    public String getCommand() {
+    public Commands getCommand() {
         return command;
     }
 

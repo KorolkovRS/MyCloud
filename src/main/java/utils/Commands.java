@@ -1,22 +1,13 @@
 package utils;
 
 public enum Commands {
-    HOME_PATH_REQ("1"),
-    FILE_STRUCT_REQ("2"),
-    UP_REQ("3"),
-    DEPTH_REQ("4"),
-    DEL_REQ("5"),
-    OK("6"),
-    ERROR("7"),
-    DOWNLOAD_REQ("8");
-
-    private String  code;
-
-    Commands(String code) {
-        this.code = code;
-    }
-
-    public String getCode() {
-        return code;
-    }
+    HOME_PATH_REQ,
+    FILE_STRUCT_REQ,
+    UP_REQ,
+    OPEN_FOLDER_REQ,
+    DEL_REQ,
+    OK,
+    ERROR,
+    DOWNLOAD_REQ,
+    UPLOAD_REQ;
 }
