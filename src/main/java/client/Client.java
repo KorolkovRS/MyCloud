@@ -88,8 +88,6 @@ public class Client {
                         incAuthMessageHandler((AuthCard) incomingObject);
                     } else if (incomingObject instanceof DataPack) {
                         incDataMessageHandler((DataPack) incomingObject);
-                    } else if (incomingObject instanceof List) {
-                        incCloudFileStructHandler((List) incomingObject);
                     }
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
@@ -165,13 +163,25 @@ public class Client {
      * @see DataPack
      */
     private void incDataMessageHandler(DataPack dataPack) {
-        if (Commands.OK.equals(dataPack.getCommand())) {
-            cloudPanelController.update(null);
+        Commands command = dataPack.getCommand();
+        try {
+            switch (command) {
+                case FILE_STRUCT:
+                    cloudPanelController.refreshCloudPanel(dataPack.getFolderStruct());
+                    break;
+                case OK:
+                    cloudPanelController.update(null);
+                    break;
+                default:
+                    throw new IOException();
+            }
+        } catch (IOException e) {
+            try {
+                System.out.println(dataPack.getStringData());
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
-    }
-
-    private void incCloudFileStructHandler(List<FileInfo> cloudFileStruct) {
-        cloudPanelController.refreshCloudPanel(cloudFileStruct);
     }
 
     /**
@@ -180,7 +190,6 @@ public class Client {
     public void userChanging() {
         main.createAuthWindow();
     }
-
 
     /**
      * Отправка запроса на обновление файловой структуры облачного харнилища на клиенте
@@ -233,7 +242,6 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("TX UPLOAD");
     }
 
 }

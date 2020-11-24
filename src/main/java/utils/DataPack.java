@@ -1,35 +1,28 @@
 package utils;
 
+import client.GUI.FileInfo;
 import javafx.scene.web.HTMLEditorSkin;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.util.List;
 
 public class DataPack implements Serializable {
     private Integer token;
     private Commands command;
-    private String path;
-    private FileCard fileCard;
+    private Object data;
 
     public DataPack(Integer token, Commands command) {
         this.token = token;
         this.command = command;
-        path = null;
-        fileCard = null;
+        data = null;
     }
 
-    public DataPack(Integer token, Commands command, String path) {
+    public DataPack(Integer token, Commands command, Object data) {
         this.token = token;
         this.command = command;
-        this.path = path;
-        fileCard = null;
-    }
-
-    public DataPack(Integer token, Commands command, FileCard fileCard) {
-        this.token = token;
-        this.fileCard = fileCard;
-        this.command = command;
-        path = null;
+        this.data = data;
     }
 
     public Integer getToken() {
@@ -40,11 +33,31 @@ public class DataPack implements Serializable {
         return command;
     }
 
-    public String getPath() {
-        return path;
+    public Object getData() {
+        return data;
     }
 
-    public FileCard getFileCard() {
-        return fileCard;
+    public FileCard getFileCard() throws IOException {
+        if ((this.data instanceof FileCard) && Commands.UPLOAD_REQ.equals(this.command)) {
+            return (FileCard) data;
+        } else {
+            throw new IOException();
+        }
+    }
+
+    public String getStringData() throws IOException {
+        if ((this.data instanceof String) && Commands.FILE_STRUCT_REQ.equals(this.command)) {
+            return (String) data;
+        } else {
+            throw new IOException();
+        }
+    }
+
+    public List<FileInfo> getFolderStruct() throws IOException {
+        if ((this.data instanceof List) && Commands.FILE_STRUCT.equals(this.command)) {
+            return (List<FileInfo>) data;
+        } else {
+            throw new IOException();
+        }
     }
 }

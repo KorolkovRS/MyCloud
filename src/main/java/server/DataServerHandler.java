@@ -33,15 +33,25 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
         homeFolder = AuthHandler.check(token);
         if (homeFolder != null) {
             Commands command = dataPack.getCommand();
-            String loadFilePath = dataPack.getPath();
-            FileCard inputFileCard = dataPack.getFileCard();
-            if (Commands.UPLOAD_REQ.equals(command)) {
-                uploadFile(inputFileCard, ctx);
-            } else if (Commands.FILE_STRUCT_REQ.equals(command)) {
-                getFileStruct(loadFilePath, ctx);
+            try {
+                if(command == null) {
+                    throw new IOException();
+                }
+                switch (command) {
+                    case UPLOAD_REQ:
+                        uploadFile(dataPack.getFileCard(), ctx);
+                        break;
+                    case FILE_STRUCT_REQ:
+                        getFileStruct(dataPack.getStringData(), ctx);
+                        break;
+                    default:
+                        throw new IOException();
+                }
+            } catch (IOException e) {
+                ctx.writeAndFlush(new DataPack(token, Commands.ERROR, "Ошибочная команда"));
             }
         } else {
-            ctx.writeAndFlush(new DataPack(token, Commands.ERROR));
+            ctx.writeAndFlush(new DataPack(token, Commands.ERROR, "Ошибка аутентификации при отправке пакета"));
         }
     }
 
@@ -61,20 +71,19 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
             byte[] bytes = inputFileCard.getData();
             if (bytes == null) {
                 filesInProgress.remove(newFile);
-                ctx.writeAndFlush(new DataPack(token, Commands.OK));
+                ctx.writeAndFlush(new DataPack(token, Commands.OK, "Файл загружен"));
             } else {
                 fos.write(bytes, 0, inputFileCard.getLength());
                 fos.flush();
             }
         } catch (IOException e) {
             System.out.println("Ошибка записи");
-            ctx.writeAndFlush(new DataPack(token, Commands.ERROR));
+            ctx.writeAndFlush(new DataPack(token, Commands.ERROR, "Ошибка загрузки файла на сервер"));
         }
     }
 
     private void getFileStruct(String cloudPanelPath, ChannelHandlerContext ctx) {
         Path path;
-
         if (cloudPanelPath == null) {
             path = Paths.get(homeFolder);
         } else {
@@ -82,7 +91,7 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
         }
         try {
             List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
-            ctx.writeAndFlush(list);
+            ctx.writeAndFlush(new DataPack(token, Commands.FILE_STRUCT, list));
         } catch (IOException e) {
             e.printStackTrace();
         }

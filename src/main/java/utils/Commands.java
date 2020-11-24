@@ -3,6 +3,7 @@ package utils;
 public enum Commands {
     HOME_PATH_REQ,
     FILE_STRUCT_REQ,
+    FILE_STRUCT,
     UP_REQ,
     OPEN_FOLDER_REQ,
     DEL_REQ,
