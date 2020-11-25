@@ -7,9 +7,9 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="MyCloud_v0.2" />
-        <module name="jf-manager" />
-        <module name="MyCloudStorage" />
         <module name="MyCloud" />
+        <module name="MyCloudStorage" />
+        <module name="jf-manager" />
       </profile>
     </annotationProcessing>
   </component>

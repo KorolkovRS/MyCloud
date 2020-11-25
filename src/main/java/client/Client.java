@@ -6,6 +6,7 @@ import client.GUI.Controllers.ClientPanelController;
 import client.GUI.Controllers.CloudPanelController;
 import client.GUI.Controllers.AuthController;
 import client.GUI.Main;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.application.Platform;
@@ -13,9 +14,13 @@ import utils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Client {
     private static final int BUFF_SIZE = 8192;
@@ -24,7 +29,6 @@ public class Client {
     private ObjectEncoderOutputStream out;
     private ObjectDecoderInputStream in;
     private byte[] buff;
-
     private Main main;
     private AuthController authController;
     private CloudPanelController cloudPanelController;
@@ -34,6 +38,7 @@ public class Client {
     private Client() {
         buff = new byte[BUFF_SIZE];
     }
+    private static Set<File> filesInProgress = new HashSet<>();
 
     public static synchronized Client getInstance() {
         if (instance == null) {
@@ -171,6 +176,9 @@ public class Client {
                 case OK:
                     cloudPanelController.update(null);
                     break;
+                case UPLOAD_REQ:
+                    saveDownloadFile(dataPack.getFileCard());
+                    break;
                 default:
                     throw new IOException();
             }
@@ -222,7 +230,7 @@ public class Client {
      */
     public void uploadFileToServer(Path clientFilePath) {
         cloudPanelController = ControllerContext.getCloudCtrInstance();
-        Path serverPath = cloudPanelController.getCurrentPath();
+        String serverPath = cloudPanelController.getCurrentPath();
         File file = clientFilePath.toFile();
         int read;
         String fileDir;
@@ -244,11 +252,49 @@ public class Client {
         }
     }
 
-    public void downloadFileFromServer(Path serverPath) {
+    public void downloadFileFromServerRequest(String serverPath) {
         clientPanelController = ControllerContext.getClientCtrInstance();
-        //Path clientFilePath = clientPanelController.
-
+        String clientFilePath = clientPanelController.getCurrentPath();
+        try {
+            out.writeObject(new DataPack(token, Commands.DOWNLOAD_REQ, new DownloadFileCard(serverPath, clientFilePath)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
+
+    private void saveDownloadFile(FileCard inputFileCard) {
+        if (inputFileCard == null) {
+            return;
+        }
+        String inputFileName = inputFileCard.getFileName();
+        File newFile = new File(inputFileName);
+
+        if (!filesInProgress.contains(newFile) && newFile.exists()) {
+            newFile.delete();
+        }
+
+        try (FileOutputStream fos = new FileOutputStream(newFile, true)) {
+            filesInProgress.add(newFile);
+            byte[] bytes = inputFileCard.getData();
+            if (bytes == null) {
+                filesInProgress.remove(newFile);
+                clientPanelController.update(Paths.get(clientPanelController.getCurrentPath()));
+            } else {
+                fos.write(bytes, 0, inputFileCard.getLength());
+                fos.flush();
+            }
+        } catch (IOException e) {
+            System.out.println("Ошибка записи");
+        }
+    }
+
+
+//    private void uploadFile(FileCard inputFileCard, ChannelHandlerContext ctx) {
+//
+//    }
+
+
+
 
     public void fileDeleteRequest(String path) {
         try {

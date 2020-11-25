@@ -92,7 +92,7 @@ public abstract class BaseController implements Initializable {
 
     public abstract void btnLoadFile(ActionEvent actionEvent);
 
-    public abstract Path getCurrentPath();
+    public abstract String getCurrentPath();
 
 
 

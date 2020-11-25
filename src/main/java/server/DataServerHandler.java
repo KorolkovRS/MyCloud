@@ -5,10 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.commons.io.FileUtils;
-import utils.AuthCard;
-import utils.Commands;
-import utils.DataPack;
-import utils.FileCard;
+import utils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,26 +31,28 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
         if (homeFolder != null) {
             Commands command = dataPack.getCommand();
             try {
-                if(command == null) {
+                if (command == null) {
                     throw new IOException();
                 }
                 switch (command) {
                     case UPLOAD_REQ:
                         uploadFile(dataPack.getFileCard(), ctx);
                         break;
+                    case DOWNLOAD_REQ:
+                        downloadFile(dataPack.getDownloadFileCard(), ctx);
+                        break;
                     case FILE_STRUCT_REQ:
+                    case OPEN_FOLDER_REQ:
                         getFileStruct(dataPack.getStringData(), ctx);
                         break;
                     case DEL_REQ:
                         deleteFile(dataPack.getStringData(), ctx);
                         break;
-                    case OPEN_FOLDER_REQ:
-                        getFileStruct(dataPack.getStringData(), ctx);
-                        break;
                     default:
                         throw new IOException();
                 }
             } catch (IOException e) {
+                e.printStackTrace();
                 ctx.writeAndFlush(new DataPack(token, Commands.ERROR, "Ошибочная команда"));
             }
         } else {
@@ -105,9 +104,9 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
 
     private void deleteFile(String path, ChannelHandlerContext ctx) {
         try {
-        if (path == null || path.isBlank()) {
-            throw new IOException();
-        }
+            if (path == null || path.isBlank()) {
+                throw new IOException();
+            }
             String deleteFile = homeFolder + "\\" + path;
             FileUtils.forceDelete(new File(deleteFile));
             ctx.writeAndFlush(new DataPack(token, Commands.OK));
@@ -116,185 +115,27 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
             ctx.writeAndFlush(new DataPack(token, Commands.ERROR, "Ошибка при удалении файла"));
         }
     }
+
+    private void downloadFile(DownloadFileCard downloadFileCard, ChannelHandlerContext ctx) {
+        try {
+            String serverPath = downloadFileCard.getServerPath();
+            String clientPath = downloadFileCard.getClientPath();
+
+            String fileName = Paths.get(serverPath).getFileName().toString();
+            clientPath = clientPath + "\\" + fileName;
+
+            File file = new File(homeFolder + "\\" + serverPath);
+            int read;
+            try (FileInputStream fis = new FileInputStream(file)) {
+                while ((read = fis.read(buff)) != -1) {
+                    ctx.writeAndFlush(new DataPack(token, Commands.UPLOAD_REQ,
+                            new FileCard(clientPath, buff, read)));
+                }
+                ctx.writeAndFlush(new DataPack(token, Commands.UPLOAD_REQ, new FileCard(clientPath, null, 0)));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            ctx.writeAndFlush(new DataPack(token, Commands.ERROR, "Ошибка при скачивании файла файла"));
+        }
+    }
 }
-
-
-//public class StorageServerHandler extends ChannelInboundHandlerAdapter {
-//    private String homePath;
-//    private String currentFile = "";
-//    private byte[] buff = new byte[8192];
-//
-//    @Override
-//    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-//        System.out.println("ACTIVE");
-//    }
-//
-//    @Override
-//    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-//        System.out.println("INACTIVE");
-//    }
-//
-//    @Override
-//    public void channelRead(ChannelHandlerContext ctx, Object msg) throws IOException {
-//        String command;
-//        String dir;
-//        FileCard fileCard;
-//
-//        if (msg instanceof DataPack) {
-//            DataPack dataPack = (DataPack) msg;
-//
-//            if ((command = dataPack.getCommand()) != null && (dir = dataPack.getPath()) != null) {
-//                if (command.equals(Commands.HOME_PATH_REQ.getCode())) {
-//                    ctx.writeAndFlush(homePath);
-//                } else if (command.equals(Commands.FILE_STRUCT_REQ.getCode())) {
-//                    Path path;
-//                    try {
-//                        path = (Paths.get(homePath + "\\" + dir));
-//                    } catch (ArrayIndexOutOfBoundsException e) {
-//                        path = (Paths.get(homePath));
-//                    }
-//                    List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
-//                    ctx.writeAndFlush(list);
-//                } else if (command.equals(Commands.UP_REQ.getCode())) {
-//                    if (!dir.isEmpty()) {
-//                        String currentPath = homePath + "\\" + dir;
-//                        Path path = Paths.get(pathUp(currentPath));
-//                        List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
-//                        ctx.writeAndFlush(list);
-//                    }
-//                } else if (command.equals(Commands.DEPTH_REQ.getCode())) {
-//                    String currentPath = homePath + "\\" + dir;
-//                    Path path = Paths.get(currentPath);
-//                    if (Files.isDirectory(path)) {
-//                        List<FileInfo> list = Files.list(path).map(FileInfo::new).collect(Collectors.toList());
-//                        ctx.writeAndFlush(list);
-//                    } else {
-//                        ctx.writeAndFlush("not a dir");
-//                    }
-//                } else if (command.equals(Commands.DEL_REQ.getCode())) {
-//                    ctx.writeAndFlush(deletePath(dir));
-//                } else if (command.equals(Commands.DOWNLOAD_REQ.getCode())) {
-//                    uploadFile(dir, ctx);
-//                }
-//            } else if ((fileCard = dataPack.getFileCard()) != null) {
-//                File newFile = new File(homePath + "\\" + fileCard.getFileName());
-//                if (!currentFile.equals(fileCard.getFileName())) {
-//                    try {
-//                        Files.delete(newFile.toPath());
-//                    } catch (IOException e) {
-//                    }
-//                }
-//                downloadFile(fileCard, ctx);
-//            }
-//        } else if (msg instanceof AuthCard) {
-//            AuthCard authCard;
-//            if ((authCard = (AuthCard) msg).isCheckReq()) {
-//                if (checkIn(authCard.getUsername(), authCard.getPass())) {
-//                    ctx.writeAndFlush(Commands.OK.getCode());
-//                } else {
-//                    ctx.writeAndFlush(Commands.ERROR.getCode());
-//                }
-//            } else {
-//                if (login(authCard.getUsername(), authCard.getPass())) {
-//                    ctx.writeAndFlush(Commands.OK.getCode());
-//                } else {
-//                    ctx.writeAndFlush(Commands.ERROR.getCode());
-//                }
-//            }
-//        }
-//    }
-//
-//    @Override
-//    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-//        cause.printStackTrace();
-//        ctx.close();
-//    }
-//
-//    private String pathUp(String path) throws IOException {
-//        Path upperPath = Paths.get(path).getParent();
-//        if (upperPath != null) {
-//            return upperPath.toString();
-//        } else {
-//            throw new IOException();
-//        }
-//    }
-//
-//    private String deletePath(String path) {
-//        String deleteFile = homePath + "\\" + path;
-//        try {
-//            FileUtils.forceDelete(new File(deleteFile));
-//            return Commands.OK.getCode();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return Commands.ERROR.getCode();
-//    }
-//
-//    private void downloadFile(FileCard fileCard, ChannelHandlerContext ctx) {
-//        File newFile = new File(homePath + "\\" + fileCard.getFileName());
-//        try (FileOutputStream fos = new FileOutputStream(newFile, true)) {
-//            if (!newFile.exists()) {
-//                newFile.createNewFile();
-//            }
-//            if (fileCard.getFileName() != null) {
-//                currentFile = fileCard.getFileName();
-//            } else {
-//                throw new IOException();
-//            }
-//            byte[] bytes = fileCard.getData();
-//            if (bytes == null) {
-//                currentFile = "";
-//                ctx.writeAndFlush(Commands.OK.getCode());
-//            } else {
-//                fos.write(bytes, 0, fileCard.getLength());
-//                fos.flush();
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            ctx.writeAndFlush(Commands.ERROR.getCode());
-//            currentFile = "";
-//        }
-//    }
-//
-//    private void uploadFile(String fileName, ChannelHandlerContext ctx) {
-//        File file = new File(homePath + "\\" + fileName);
-//        FileCard fileCard;
-//        int read;
-//
-//        try (FileInputStream fis = new FileInputStream(file)) {
-//            while ((read = fis.read(buff)) != -1) {
-//                fileCard = new FileCard(Paths.get(file.getName()).toString(), buff, read);
-//                ctx.writeAndFlush(fileCard);
-//            }
-//            fileCard = new FileCard(Paths.get(file.getName()).toString(), null, 0);
-//            ctx.writeAndFlush(fileCard);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    private boolean login(String login, String pass) {
-//        String dir;
-//        if (login != null && pass != null) {
-//            if ((dir = AuthHandler.getHomePath(login, pass)) != null) {
-//                System.out.println("SH login");
-//                homePath = dir;
-//                System.out.println("homepath " + homePath);
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
-//
-//    private boolean checkIn(String login, String pass) {
-//        try {
-//            AuthHandler.setHomePath(login, pass);
-//            return true;
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return false;
-//    }
-//}

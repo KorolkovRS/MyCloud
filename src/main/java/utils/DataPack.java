@@ -58,4 +58,12 @@ public class DataPack implements Serializable {
             throw new IOException();
         }
     }
+
+    public DownloadFileCard getDownloadFileCard() throws IOException {
+        if ((this.data instanceof DownloadFileCard) && Commands.DOWNLOAD_REQ.equals(this.command)) {
+            return (DownloadFileCard) data;
+        } else {
+            throw new IOException();
+        }
+    }
 }

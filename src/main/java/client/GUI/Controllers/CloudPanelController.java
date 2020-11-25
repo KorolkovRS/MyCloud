@@ -83,12 +83,14 @@ public class CloudPanelController extends BaseController {
 
     @Override
     public void btnLoadFile(ActionEvent actionEvent) {
-
+        FileInfo fileInfo = filesTable.getSelectionModel().getSelectedItem();
+        Path downloadFile = Paths.get(pathField.getText()).resolve(fileInfo.getFilename());
+        client.downloadFileFromServerRequest(downloadFile.toString());
     }
 
     @Override
-    public Path getCurrentPath() {
-        return null;
+    public String getCurrentPath() {
+        return pathField.getText();
     }
 
     public void btnUpdatePanel(ActionEvent actionEvent) {

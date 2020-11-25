@@ -110,8 +110,8 @@ public class ClientPanelController extends BaseController {
     }
 
     @Override
-    public Path getCurrentPath() {
-        return null;
+    public String getCurrentPath() {
+        return pathField.getText();
     }
 
     public void selectDiskAction(ActionEvent actionEvent) {
