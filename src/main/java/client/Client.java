@@ -2,6 +2,7 @@ package client;
 
 //import client.GUI.FileInfo;
 
+import client.GUI.Controllers.ClientPanelController;
 import client.GUI.Controllers.CloudPanelController;
 import client.GUI.Controllers.AuthController;
 import client.GUI.Main;
@@ -27,6 +28,7 @@ public class Client {
     private Main main;
     private AuthController authController;
     private CloudPanelController cloudPanelController;
+    private ClientPanelController clientPanelController;
     private Integer token;
 
     private Client() {
@@ -217,9 +219,10 @@ public class Client {
      * Отправить файл, располагающийся в
      *
      * @param clientFilePath на сервер, в
-     * @param serverPath
      */
-    public void uploadFileToServer(Path clientFilePath, Path serverPath) {
+    public void uploadFileToServer(Path clientFilePath) {
+        cloudPanelController = ControllerContext.getCloudCtrInstance();
+        Path serverPath = cloudPanelController.getCurrentPath();
         File file = clientFilePath.toFile();
         int read;
         String fileDir;
@@ -239,6 +242,12 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void downloadFileFromServer(Path serverPath) {
+        clientPanelController = ControllerContext.getClientCtrInstance();
+        //Path clientFilePath = clientPanelController.
+
     }
 
     public void fileDeleteRequest(String path) {

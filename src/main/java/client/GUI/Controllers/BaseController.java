@@ -22,15 +22,14 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 public abstract class BaseController implements Initializable {
-
     protected Path homePath;
     protected Client client;
 
     @FXML
-    TableView<FileInfo> filesTable;
+    protected TableView<FileInfo> filesTable;
 
     @FXML
-    TextField pathField;
+    protected TextField pathField;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -92,6 +91,8 @@ public abstract class BaseController implements Initializable {
     public abstract void btnFileDelete(ActionEvent actionEvent);
 
     public abstract void btnLoadFile(ActionEvent actionEvent);
+
+    public abstract Path getCurrentPath();
 
 
 

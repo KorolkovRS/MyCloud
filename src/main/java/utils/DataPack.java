@@ -43,7 +43,8 @@ public class DataPack implements Serializable {
     public String getStringData() throws IOException {
         if ((this.data instanceof String) &&
                 (Commands.FILE_STRUCT_REQ.equals(this.command)
-                    || Commands.DEL_REQ.equals(this.command))) {
+                    || Commands.DEL_REQ.equals(this.command))
+                    || Commands.OPEN_FOLDER_REQ.equals(this.command)) {
             return (String) data;
         } else {
             throw new IOException();

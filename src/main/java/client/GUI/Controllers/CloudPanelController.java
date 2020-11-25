@@ -12,14 +12,15 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class CloudPanelController extends BaseController {
+    private static final String DEFAULT_FOLDER = "";
+    private String goToFolder;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        goToFolder = DEFAULT_FOLDER;
         super.initialize(url, resourceBundle);
         ControllerContext.setCloudCtr(this);
         update(homePath);
@@ -42,6 +43,7 @@ public class CloudPanelController extends BaseController {
     public void openFolder(Path path) {
         try {
             client.openFolderRequest(path);
+            goToFolder = path.toString();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -49,7 +51,18 @@ public class CloudPanelController extends BaseController {
 
     @Override
     public void btnPathUpAction(ActionEvent actionEvent) {
-        System.out.println("path up cloud");
+            Path parentPath = Paths.get(pathField.getText()).getParent();
+            try {
+                if (parentPath == null) {
+                    goToFolder = DEFAULT_FOLDER;
+                    update(Paths.get(DEFAULT_FOLDER));
+                } else {
+                    client.openFolderRequest(parentPath);
+                    goToFolder = parentPath.toString();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
 
     @Override
@@ -70,11 +83,12 @@ public class CloudPanelController extends BaseController {
 
     @Override
     public void btnLoadFile(ActionEvent actionEvent) {
-        System.out.println("load file cloud");
+
     }
 
+    @Override
     public Path getCurrentPath() {
-        return homePath;
+        return null;
     }
 
     public void btnUpdatePanel(ActionEvent actionEvent) {
@@ -86,6 +100,7 @@ public class CloudPanelController extends BaseController {
         filesTable.getItems().addAll(list);
         filesTable.sort();
         filesTable.getItems().addAll();
+        pathField.setText(goToFolder);
     }
 }
 

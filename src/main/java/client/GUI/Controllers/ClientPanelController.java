@@ -102,15 +102,16 @@ public class ClientPanelController extends BaseController {
 
     @Override
     public void btnLoadFile(ActionEvent actionEvent) {
-        if (cloudCtr == null) {
-            cloudCtr = ControllerContext.getCloudCtrInstance();
-        }
-
         FileInfo fileInfo = filesTable.getSelectionModel().getSelectedItem();
         Path filePath = Paths.get(pathField.getText()).resolve(fileInfo.getFilename());
         if (!Files.isDirectory(filePath)) {
-            client.uploadFileToServer(filePath, cloudCtr.getCurrentPath());
+            client.uploadFileToServer(filePath);
         }
+    }
+
+    @Override
+    public Path getCurrentPath() {
+        return null;
     }
 
     public void selectDiskAction(ActionEvent actionEvent) {

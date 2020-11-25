@@ -47,6 +47,9 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
                     case DEL_REQ:
                         deleteFile(dataPack.getStringData(), ctx);
                         break;
+                    case OPEN_FOLDER_REQ:
+                        getFileStruct(dataPack.getStringData(), ctx);
+                        break;
                     default:
                         throw new IOException();
                 }
