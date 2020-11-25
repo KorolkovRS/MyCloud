@@ -32,7 +32,8 @@ public class NettyServer {
                             ch.pipeline().addLast(
                                     new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
-                                    new StorageServerHandler()
+                                    new AuthCardServerHandler(),
+                                    new DataServerHandler()
                             );
                         }
                     });
@@ -47,7 +48,7 @@ public class NettyServer {
 
     public static void main(String[] args) {
         try {
-            new NettyServer(8888).start();
+            new NettyServer(8889).start();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

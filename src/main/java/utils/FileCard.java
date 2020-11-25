@@ -1,6 +1,7 @@
 package utils;
 
 import java.io.Serializable;
+import java.nio.file.Path;
 
 public class FileCard implements Serializable {
     private String fileName;

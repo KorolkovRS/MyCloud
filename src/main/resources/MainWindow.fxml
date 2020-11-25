@@ -6,7 +6,7 @@
 <?import javafx.scene.control.MenuItem?>
 
 <VBox alignment="center" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.2-internal"
-      fx:controller="client.GUI.Controller">
+      fx:controller="client.GUI.Controllers.Controller">
 
     <MenuBar>
         <Menu text="Файл">

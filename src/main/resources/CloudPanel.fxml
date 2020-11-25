@@ -5,7 +5,7 @@
 
 <?import javafx.geometry.Insets?>
 <VBox alignment="center" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.2-internal"
-      fx:controller="client.GUI.CloudPanelController">
+      fx:controller="client.GUI.Controllers.CloudPanelController">
     <HBox>
         <TextField fx:id="pathField" editable="false" HBox.hgrow="ALWAYS"/>
         <Button text="Вверх" onAction="#btnPathUpAction"/>
@@ -15,6 +15,7 @@
     <HBox spacing="5">
         <Button maxWidth="Infinity" focusTraversable="false" text="Скачать файл" HBox.hgrow="ALWAYS" onAction="#btnLoadFile"/>
         <Button maxWidth="Infinity" focusTraversable="false" text="Удалить файл" HBox.hgrow="ALWAYS" onAction="#btnFileDelete"/>
+        <Button maxWidth="Infinity" focusTraversable="false" text="Обновить" HBox.hgrow="ALWAYS" onAction="#btnUpdatePanel"/>
         <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
         </padding>
@@ -24,3 +25,25 @@
         <ctrl><fx:reference source="controller"/></ctrl>
     </properties>
 </VBox>
+
+
+<!--<VBox alignment="center" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/10.0.2-internal"-->
+<!--      fx:controller="client.GUI.Controllers.CloudPanelController">-->
+<!--<HBox>-->
+<!--    <TextField fx:id="pathField" editable="false" HBox.hgrow="ALWAYS"/>-->
+<!--    <Button text="Вверх" onAction="#btnPathUpAction"/>-->
+<!--</HBox>-->
+<!--<TableView fx:id="filesTable" VBox.vgrow="ALWAYS"/>-->
+
+<!--<HBox spacing="5">-->
+<!--    <Button maxWidth="Infinity" focusTraversable="false" text="Скачать файл" HBox.hgrow="ALWAYS" onAction="#btnLoadFile"/>-->
+<!--    <Button maxWidth="Infinity" focusTraversable="false" text="Удалить файл" HBox.hgrow="ALWAYS" onAction="#btnFileDelete"/>-->
+<!--    <padding>-->
+<!--        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>-->
+<!--    </padding>-->
+<!--</HBox>-->
+
+<!--<properties>-->
+<!--    <ctrl><fx:reference source="controller"/></ctrl>-->
+<!--</properties>-->
+<!--</VBox>-->

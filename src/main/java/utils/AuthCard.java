@@ -6,11 +6,18 @@ public class AuthCard implements Serializable {
     private boolean checkReq;
     private String username;
     private String pass;
+    private Integer token;
 
     public AuthCard(boolean checkReq, String username, String pass) {
         this.checkReq = checkReq;
         this.username = username;
         this.pass = pass;
+    }
+
+    public AuthCard(boolean checkReq, String username, String pass, Integer token) {
+        this.checkReq = checkReq;
+        this.username = username;
+        this.token = token;
     }
 
     public boolean isCheckReq() {
@@ -23,5 +30,9 @@ public class AuthCard implements Serializable {
 
     public String getPass() {
         return pass;
+    }
+
+    public Integer getToken() {
+        return token;
     }
 }
