@@ -1,10 +1,10 @@
-package server;
+package server.Handlers;
 
 import client.GUI.FileInfo;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.commons.io.FileUtils;
+import server.BaseAuthService;
 import utils.*;
 
 import java.io.File;
@@ -18,16 +18,22 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
+    private BaseAuthService authService;
     private String homeFolder;
     private static Set<File> filesInProgress = new HashSet<>();
     private byte[] buff = new byte[8192];
     private int token;
 
+    public DataServerHandler() {
+        super();
+        authService = BaseAuthService.getInstance();
+    }
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DataPack dataPack) throws Exception {
         // Если соединение есть в списке зарегистрированных, то работаем с пакетом, иначе возвращаем код ошибки
         token = dataPack.getToken();
-        homeFolder = AuthHandler.check(token);
+        homeFolder = authService.check(token);
         if (homeFolder != null) {
             Commands command = dataPack.getCommand();
             try {
