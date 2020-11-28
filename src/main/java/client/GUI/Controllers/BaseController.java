@@ -93,29 +93,4 @@ public abstract class BaseController implements Initializable {
     public abstract void btnLoadFile(ActionEvent actionEvent);
 
     public abstract String getCurrentPath();
-
-
-
-    //    @Override
-//    public void btnPathUpAction(ActionEvent actionEvent) {
-//        Path upperPath = Paths.get(pathField.getText()).getParent();
-//        if (upperPath != null) {
-//            updateList(upperPath, null);
-//        } else updateList(Paths.get(pathField.getText()), null);
-//    }
-
-//
-//
-//
-//    public Client getClient() {
-//        return client;
-//    }
-//
-//    protected abstract void login();
-//
-//    public abstract void updateList(Path path, List<FileInfo> list);
-//
-//    public abstract void btnPathUpAction(ActionEvent actionEvent);
-//
-//    public abstract void btnFileDelete(ActionEvent actionEvent);
 }

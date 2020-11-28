@@ -69,8 +69,8 @@ public class Main extends Application {
             e.printStackTrace();
             Platform.exit();
         }
-
     }
+
     public void createMainWindow(String username) {
         try {
             primaryStage.close();
