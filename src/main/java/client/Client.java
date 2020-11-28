@@ -145,6 +145,10 @@ public class Client {
      * @see AuthCard
      */
     private void incAuthMessageHandler(AuthCard authCard) {
+        if (authCard.getUsername() == null) {
+            Platform.runLater(() -> authController.connectErrorAction());
+            return;
+        }
         if (authCard.isCheckReq()) {
             if ((token = authCard.getToken()) != null) {
                 Platform.runLater(() -> main.createMainWindow(authCard.getUsername()));

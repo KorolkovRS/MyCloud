@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.apache.commons.io.FileUtils;
 import server.BaseAuthService;
+import server.DBAuthService;
 import utils.*;
 
 import java.io.File;
@@ -18,7 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
-    private BaseAuthService authService;
+    private DBAuthService authService;
     private String homeFolder;
     private static Set<File> filesInProgress = new HashSet<>();
     private byte[] buff = new byte[8192];
@@ -26,7 +27,7 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
 
     public DataServerHandler() {
         super();
-        authService = BaseAuthService.getInstance();
+        authService = DBAuthService.getInstance();
     }
 
     @Override

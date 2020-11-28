@@ -2,8 +2,11 @@ package server;
 
 import utils.AuthCard;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 public interface AuthService {
-    public AuthCard add(AuthCard authCard);
-    public AuthCard login(AuthCard authCard);
+    public AuthCard add(AuthCard authCard) throws SQLException, IOException;
+    public AuthCard login(AuthCard authCard) throws SQLException;
     public String check(Integer token);
 }
