@@ -27,6 +27,7 @@ public class AuthCardServerHandler extends SimpleChannelInboundHandler<AuthCard>
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, AuthCard authCard) throws Exception {
+        System.out.println("auth");
         try {
             if (authCard.isCheckReq()) { //Если пришел запрос на регистрацию
                 ctx.writeAndFlush(authService.add(authCard));

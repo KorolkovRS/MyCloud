@@ -33,10 +33,12 @@ public class DataServerHandler extends SimpleChannelInboundHandler<DataPack> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DataPack dataPack) throws Exception {
         // Если соединение есть в списке зарегистрированных, то работаем с пакетом, иначе возвращаем код ошибки
+        System.out.println("data");
         token = dataPack.getToken();
         homeFolder = authService.check(token);
         if (homeFolder != null) {
             Commands command = dataPack.getCommand();
+            System.out.println(command);
             try {
                 if (command == null) {
                     throw new IOException();

@@ -26,4 +26,9 @@ public class ControllerContext {
     public static CloudPanelController getCloudCtrInstance() {
         return cloudCtrInstance;
     }
+
+    public static void reset() {
+        clientCtrInstance = null;
+        clientCtrInstance = null;
+    }
 }

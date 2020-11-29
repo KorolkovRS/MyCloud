@@ -10,6 +10,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import utils.*;
 
 import java.io.File;
@@ -34,6 +37,7 @@ public class Client {
     private CloudPanelController cloudPanelController;
     private ClientPanelController clientPanelController;
     private Integer token;
+    private boolean firstStart = true;
 
     private Client() {
         buff = new byte[BUFF_SIZE];
@@ -151,13 +155,33 @@ public class Client {
         }
         if (authCard.isCheckReq()) {
             if ((token = authCard.getToken()) != null) {
-                Platform.runLater(() -> main.createMainWindow(authCard.getUsername()));
+                if (firstStart) {
+                    Platform.runLater(() -> main.createMainWindow());
+                    firstStart = false;
+                } else {
+                    try {
+                        Platform.runLater(() -> main.closeAuthStage());
+                        updateCloudPanel(null);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             } else {
                 Platform.runLater(() -> authController.checkInErrorAction());
             }
         } else {
             if ((token = authCard.getToken()) != null) {
-                Platform.runLater(() -> main.createMainWindow(authCard.getUsername()));
+                if (firstStart) {
+                    Platform.runLater(() -> main.createMainWindow());
+                    firstStart = false;
+                } else {
+                    try {
+                        Platform.runLater(() -> main.closeAuthStage());
+                        updateCloudPanel(null);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             } else {
                 Platform.runLater(() -> authController.loginErrorAction());
             }
@@ -199,7 +223,7 @@ public class Client {
      * Сменить пользователя
      */
     public void userChanging() {
-        main.createAuthWindow();
+        main.userChanging();
     }
 
     /**
@@ -209,7 +233,7 @@ public class Client {
      * @throws IOException
      */
     public void updateCloudPanel(Path path) throws IOException {
-        String sPath = null;
+        String sPath = "";
         if (path != null) {
             sPath = path.toString();
         }
