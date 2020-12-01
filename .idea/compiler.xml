@@ -7,10 +7,14 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="MyCloud_v0.2" />
-        <module name="MyCloud" />
+        <module name="client" />
+        <module name="core" />
+        <module name="server" />
         <module name="MyCloudStorage" />
-        <module name="jf-manager" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="MyCloud" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
 </project>
